@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Music Analyser</title>
+  <style>
+    body{ margin:0; background:#000; color:#fff; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh }
+    .d{ background:#111; padding:20px; border-radius:10px; width:700px; text-align:center; position:relative }
+    button{ padding:8px 12px; font-weight:bold; margin:0 4px; cursor:pointer }
+    .led{ width:50px; height:50px; border-radius:50%; background:#222; margin:10px auto; display:flex; align-items:center; justify-content:center; font-size:22px }
+    .a{ box-shadow:0 0 20px #fff }
+    .b{ background:#fff; box-shadow:0 0 20px #fff }
+    .t{ background:#7a5cff; box-shadow:0 0 20px #7a5cff }
+    .r{ background:#2ecc71; box-shadow:0 0 20px #2ecc71 }
+    .p{ background:#ffb000; box-shadow:0 0 20px #ffb000 }
+    .drop-active { background:#ff0055 !important; box-shadow:0 0 25px #ff0055; color: white; }
+    .row{ display:flex; justify-content:space-around; gap:10px; flex-wrap:wrap }
+    canvas{ background:#000; width:100%; margin-top:10px }
+    .small{ margin-top:6px; font-size:14px; opacity:.9 }
+    #bpmVal, #rmsVal { font-size:20px; font-weight:bold; margin-top:6px }
+  </style>
+</head>
+<body>
+  <div class="d">
+    <h3>Analyseur</h3>
+    <button id="start">START</button>
+    <button id="stop">STOP</button>
+
+    <div class="row" style="margin-top:15px">
+      <div>BEAT <div id="beat" class="led">●</div></div>
+      <div>THEME<div id="theme" class="led">●</div><div id="themeText" class="small">—</div></div>
+      <div>ENERGY <div id="dropLed" class="led">●</div><div id="dropVal" class="small">1.0x</div></div>
+      <div>RMS <div id="powerLed" class="led">●</div><div id="rmsVal">—</div></div>
+      <div>BPM <div id="bpmLed" class="led">●</div><div id="bpmVal">—</div></div>
+    </div>
+
+    <div class="row" id="notes" style="display:none;margin-top:15px">
+      <div><div id="l0" class="led">●</div><div id="n0">-</div></div>
+      <div><div id="l1" class="led">●</div><div id="n1">-</div></div>
+      <div><div id="l2" class="led">●</div><div id="n2">-</div></div>
+    </div>
+
+    <canvas id="g" width="700" height="200"></canvas>
+  </div>
+  <script src="./settings.js"></script>
+  <script type="module" src="./page.js"></script>
+</body>
+</html>

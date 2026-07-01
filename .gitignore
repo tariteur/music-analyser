@@ -1,0 +1,11 @@
+# Dépendances Node.js
+node_modules/
+
+# Dossier de build (créé par electron-builder)
+dist/
+release/
+
+# Fichiers de log ou temporaires
+*.log
+*.tmp
+.DS_Store
