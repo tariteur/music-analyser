@@ -6,6 +6,8 @@ import BpmDetector from "./BpmDetector.js";
 import RMSMeter from "./RMSMeter.js";
 import EnergyAnalyzer from "./EnergyAnalyzer.js";
 import ThemeDetector from "./ThemeDetector.js";
+import MoodDetector from "./MoodDetector.js";
+import AudioColor from "./AudioColor.js";
 
 export default class AudioAPI {
 
@@ -17,6 +19,8 @@ export default class AudioAPI {
     this.onFrame = options.onFrame ?? null;
     this.onBpm = options.onBpm ?? null;
     this.onTheme = options.onTheme ?? null;
+    this.onMood = options.onMood ?? null;
+    this.onColor = options.onColor ?? null;
     this.onStop = options.onStop ?? null;
 
     this.A = null;
@@ -38,11 +42,30 @@ export default class AudioAPI {
     this.energyAnalyzer = new EnergyAnalyzer();
     this.state = AudioState.create();
 
+    this.moodDetector = new MoodDetector({
+      size: options.moodSize ?? 200,
+      calmMax: options.moodCalmMax ?? 0.4,
+      hotMin: options.moodHotMin ?? 0.6,
+      onMood: (mood, energyLiss) => {
+        this.state.mood = mood;
+        this.state.energyLiss = energyLiss;
+        if(this.onMood) this.onMood(mood, energyLiss);
+      }
+    });
+
     this.themeDetector = new ThemeDetector({
       onTheme: (theme, score) => {
         this.state.theme = theme;
         this.state.themeScore = score;
         if(this.onTheme) this.onTheme(theme, score);
+      }
+    });
+
+    this.audioColor = new AudioColor({
+      onColor: (primary, secondary) => {
+        this.state.primaryColor = primary;
+        this.state.secondaryColor = secondary;
+        if(this.onColor) this.onColor(primary, secondary);
       }
     });
   }
@@ -83,6 +106,8 @@ export default class AudioAPI {
 
       this.noteTracker.reset();
       this.rmsMeter.reset();
+      this.moodDetector.reset();
+      this.audioColor.reset();
       AudioState.reset(this.state);
 
       this.themeDetector.start();
@@ -139,6 +164,20 @@ export default class AudioAPI {
     const energy = this.energyAnalyzer.analyze(avg / 255);
     this.state.isDrop = energy.isDrop;
     this.state.dropRatio = energy.ratio;
+
+    // --- DÉTECTION DU MOOD (calme / moyen / enerve) ---
+    // énergie instantanée normalisée 0..1 : moyenne de dropRatio et power
+    const energyNow = ((Number(energy.ratio) || 0) + (this.state.power / 100)) / 2;
+    const moodRes = this.moodDetector.update(energyNow);
+    this.state.mood = moodRes.mood;
+    this.state.energyLiss = moodRes.energyLiss;
+    // ---------------------------------------------------
+
+    // --- DÉTECTION DES COULEURS (AudioColor) ---
+    const colorRes = this.audioColor.process(this.f8, this.A.sampleRate, this.C.fftSize, now);
+    this.state.primaryColor = colorRes.primary;
+    this.state.secondaryColor = colorRes.secondary;
+    // -------------------------------------------
 
     if(max > 120 && max > avg * 3){
       this.noteTracker.addFromPeak(now, idx * AudioUtils.hz(this.A, this.C));

@@ -11,6 +11,10 @@ export default class AudioState {
       // ✅ DROP
       isDrop: false,
       dropRatio: 1,
+      
+      // ✅ COLORS
+      primaryColor: null,
+      secondaryColor: null,
 
       notes: [
         { name: "-", num: null, active: false },
@@ -47,6 +51,10 @@ export default class AudioState {
       isDrop: state.isDrop,
       dropRatio: state.dropRatio,
 
+      // ✅ COLORS
+      primaryColor: state.primaryColor ? { ...state.primaryColor } : null,
+      secondaryColor: state.secondaryColor ? { ...state.secondaryColor } : null,
+
       notes: state.notes.map(n => ({ ...n })),
       bands: { ...state.bands },
       spectrum: { ...state.spectrum },
@@ -57,6 +65,10 @@ export default class AudioState {
 
   static reset(state) {
     const fresh = AudioState.create();
+    // Vide l'objet existant puis réapplique les valeurs de base
+    for (const key in state) {
+      delete state[key];
+    }
     Object.assign(state, fresh);
   }
 }

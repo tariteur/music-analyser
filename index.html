@@ -5,9 +5,9 @@
   <title>Music Analyser</title>
   <style>
     body{ margin:0; background:#000; color:#fff; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh }
-    .d{ background:#111; padding:20px; border-radius:10px; width:700px; text-align:center; position:relative }
+    .d{ background:#111; padding:20px; border-radius:10px; width:850px; text-align:center; position:relative }
     button{ padding:8px 12px; font-weight:bold; margin:0 4px; cursor:pointer }
-    .led{ width:50px; height:50px; border-radius:50%; background:#222; margin:10px auto; display:flex; align-items:center; justify-content:center; font-size:22px }
+    .led{ width:50px; height:50px; border-radius:50%; background:#222; margin:10px auto; display:flex; align-items:center; justify-content:center; font-size:22px; transition: background-color 0.3s, box-shadow 0.3s; }
     .a{ box-shadow:0 0 20px #fff }
     .b{ background:#fff; box-shadow:0 0 20px #fff }
     .t{ background:#7a5cff; box-shadow:0 0 20px #7a5cff }
@@ -18,6 +18,8 @@
     canvas{ background:#000; width:100%; margin-top:10px }
     .small{ margin-top:6px; font-size:14px; opacity:.9 }
     #bpmVal, #rmsVal { font-size:20px; font-weight:bold; margin-top:6px }
+    /* Cache le point à l'intérieur de la led couleur pour laisser juste l'aplat */
+    .color-led { color: transparent; }
   </style>
 </head>
 <body>
@@ -32,6 +34,8 @@
       <div>ENERGY <div id="dropLed" class="led">●</div><div id="dropVal" class="small">1.0x</div></div>
       <div>RMS <div id="powerLed" class="led">●</div><div id="rmsVal">—</div></div>
       <div>BPM <div id="bpmLed" class="led">●</div><div id="bpmVal">—</div></div>
+      <div>COLOR 1<div id="c1Led" class="led color-led">●</div><div id="c1Text" class="small">—</div></div>
+      <div>COLOR 2<div id="c2Led" class="led color-led">●</div><div id="c2Text" class="small">—</div></div>
     </div>
 
     <div class="row" id="notes" style="display:none;margin-top:15px">
@@ -40,7 +44,7 @@
       <div><div id="l2" class="led">●</div><div id="n2">-</div></div>
     </div>
 
-    <canvas id="g" width="700" height="200"></canvas>
+    <canvas id="g" width="850" height="200"></canvas>
   </div>
   <script src="./settings.js"></script>
   <script type="module" src="./page.js"></script>

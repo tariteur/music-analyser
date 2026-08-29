@@ -2,9 +2,14 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Music Analyser</title>
-  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <title>Music Analyser - Mode Prestation</title>
+  
+  <!-- CodeMirror CSS & JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/comment/comment.min.js"></script>
 
   <style>
     :root {
@@ -28,6 +33,15 @@
       color: var(--text);
       font-family: Inter, sans-serif;
       overflow: hidden;
+    }
+
+    /* CSS GESTION DES VUES (MODIFICATION / PRESTATION) */
+    .perf-mode .hide-in-perf {
+      display: none !important;
+    }
+    .perf-mode #api-sidebar,
+    .perf-mode #editorContainer {
+      display: none !important;
     }
 
     #header {
@@ -70,18 +84,131 @@
       color: #9fd2ff;
     }
 
+    #midiTesterContainer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #111;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    #midiTesterContainer label {
+      font-size: 10px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    #midiTesterContainer input {
+      width: 42px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: var(--midi);
+      padding: 3px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: monospace;
+      text-align: center;
+    }
+
+    #midiTesterContainer input::-webkit-inner-spin-button,
+    #midiTesterContainer input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
     #main {
       flex: 1;
       display: flex;
       overflow: hidden;
     }
 
-    #blocklyDiv {
+    #api-sidebar {
+      width: 250px;
+      background: var(--panel-2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    #perf-sidebar {
+      width: 240px;
+      background: #0a0a0a;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .api-header {
+      padding: 10px;
+      font-size: 12px;
+      background: #111;
+      color: #aaa;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-weight: bold;
+    }
+
+    .api-category {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .api-category-title {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #1a1a1a;
+      color: var(--text);
+      text-transform: uppercase;
+      border-bottom: 1px solid #222;
+      border-top: 1px solid #222;
+    }
+
+    .api-item {
+      padding: 6px 10px 6px 20px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--accent);
+      cursor: pointer;
+      border-bottom: 1px solid #111;
+      transition: background 0.2s;
+    }
+
+    .api-item:hover {
+      background: #222;
+    }
+
+    .api-item-desc {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-family: Inter, sans-serif;
+      margin-top: 2px;
+    }
+
+    #editorContainer {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .CodeMirror {
+      flex: 1;
+      height: 100%;
+      font-size: 14px;
+      font-family: 'Fira Code', monospace;
     }
 
     #console {
-      width: 380px;
+      width: 320px;
       background: var(--panel-2);
       border-left: 1px solid var(--border);
       display: flex;
@@ -116,10 +243,6 @@
       word-break: break-word;
     }
 
-    .mode-run .blocklyToolboxDiv {
-      display: none !important;
-    }
-
     #stats {
       margin-left: auto;
       font-family: monospace;
@@ -152,19 +275,107 @@
     input[type="file"] {
       display: none;
     }
+
+    .toast-banner {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: #1a1a1a;
+      border: 1px solid #ffcc00;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+    }
+
+    .toast-banner.active {
+      display: flex;
+    }
+
+    .switch-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid #1a1a1a;
+      background: #0f0f0f;
+    }
+
+    .switch-label {
+      font-size: 12px;
+      color: #eee;
+      font-family: sans-serif;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #333;
+      transition: .3s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #aaa;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      background-color: #000;
+      transform: translateX(16px);
+    }
   </style>
 </head>
 
-<body>
+<!-- Ajout de la classe perf-mode par défaut -->
+<body class="perf-mode">
 
 <div id="header">
-  <button class="btn btn-dark" id="openBPM-ViwerBtn">BPM-Viwer</button>
-  <button class="btn btn-dark" id="audioBtn">AUDIO</button>
-  <button class="btn btn-midi" id="midiBtn">MIDI</button>
+  <button class="btn btn-edit" id="toggleViewBtn">VUE MODIFICATION</button>
+  <button class="btn btn-dark" id="openBPM-ViwerBtn">BPM-VIEWER</button>
   <button class="btn btn-run" id="runBtn">RUN</button>
-  <button class="btn btn-dark" id="exportBtn">EXPORT</button>
-  <button class="btn btn-dark" id="importBtn">IMPORT</button>
-  <button class="btn btn-dark" onclick="clearLogs()">CLEAR</button>
+  <button class="btn btn-dark hide-in-perf" id="exportBtn">EXPORT</button>
+  <button class="btn btn-dark hide-in-perf" id="importBtn">IMPORT</button>
+  <button class="btn btn-dark hide-in-perf" onclick="clearLogs()">CLEAR</button>
+
+  <div id="midiTesterContainer" class="hide-in-perf">
+    <label for="midiTestNote">NOTE</label>
+    <input type="number" id="midiTestNote" value="60" min="0" max="127" />
+    <label for="midiTestVel">VAL</label>
+    <input type="number" id="midiTestVel" value="100" min="0" max="127" />
+    <button class="btn btn-midi" id="sendMidiTestBtn" style="padding: 4px 8px; font-size: 11px;">TESTER</button>
+  </div>
 
   <div id="stats">
     <span id="bpm">BPM: --</span>
@@ -172,12 +383,41 @@
     <div class="beat" id="beat"></div>
   </div>
 
-  <input type="file" id="fileInput" accept="application/json" />
+  <input type="file" id="fileInput" accept=".analyser" />
 </div>
 
 <div id="main">
-  <div id="blocklyDiv"></div>
+  <!-- Barre latérale d'API -->
+  <div id="api-sidebar">
+    <div class="api-header">API & Snippets (Clic pour insérer)</div>
+    
+    <div class="api-category-title" style="color: #ffaa00;">Prestation</div>
+    <ul class="api-category" id="apiPrestation"></ul>
 
+    <div class="api-category-title" style="color: #6b2dbf;">Audio</div>
+    <ul class="api-category" id="apiAudio"></ul>
+
+    <div class="api-category-title" style="color: #55aaff;">MIDI</div>
+    <ul class="api-category" id="apiMidi"></ul>
+
+    <div class="api-category-title" style="color: #ff3b3b;">Actions & Contrôle</div>
+    <ul class="api-category" id="apiActions"></ul>
+  </div>
+
+  <!-- Éditeur de code -->
+  <div id="editorContainer">
+    <textarea id="codeEditor"></textarea>
+  </div>
+
+  <!-- Panneau Prestation pour les Switches -->
+  <div id="perf-sidebar">
+    <div class="api-header" style="color: var(--accent);">MODE PRESTATION</div>
+    <div id="switchesContainer">
+      <!-- Les switchs générés par le code apparaitront ici -->
+    </div>
+  </div>
+
+  <!-- Console -->
   <div id="console">
     <div id="logHeader">
       <span>CONSOLE INTÉGRÉE</span>
@@ -187,595 +427,265 @@
   </div>
 </div>
 
-<xml id="toolbox" style="display:none">
-  <category name="Audio" categorystyle="audio_category">
-    <block type="get_bpm"></block>
-    <block type="get_power"></block>
-    <block type="get_rms"></block>
-    <block type="get_beat"></block>
-    <block type="get_theme"></block>
+<div id="popupModal" class="toast-banner">
+  <span>⚠️ Code modifié pendant l'exécution</span>
+  <button class="btn btn-run" id="popupRestartBtn" style="padding: 3px 8px; font-size: 11px;">RELANCER</button>
+  <button class="btn btn-dark" id="popupCloseBtn" style="padding: 2px 6px; font-size: 11px;">✕</button>
+</div>
 
-    <block type="get_key_a_active"></block>
-    <block type="get_key_b_active"></block>
-    <block type="get_key_c_active"></block>
-
-    <block type="get_note_1_value"></block>
-    <block type="get_note_2_value"></block>
-    <block type="get_note_3_value"></block>
-  </category>
-
-  <category name="MIDI" categorystyle="midi_category">
-    <block type="midi_send_note"></block>
-    <block type="midi_last_note"></block>
-    <block type="midi_last_velocity"></block>
-    <block type="midi_last_channel"></block>
-    <block type="midi_note_active"></block>
-    <block type="midi_last_is_on"></block>
-  </category>
-
-  <category name="Logic" categorystyle="logic_category">
-    <block type="controls_if"></block>
-    <block type="logic_compare"></block>
-    <block type="logic_operation"></block>
-    <block type="logic_boolean"></block>
-    <block type="logic_negate"></block>
-  </category>
-
-  <category name="Math" categorystyle="math_category">
-    <block type="math_number"></block>
-    <block type="math_arithmetic"></block>
-  </category>
-
-  <category name="Text" categorystyle="text_category">
-    <block type="text"></block>
-    <block type="text_join"></block>
-  </category>
-
-  <category name="Variables" categorystyle="variable_category" custom="VARIABLE"></category>
-
-  <category name="Actions" categorystyle="action_category">
-    <block type="custom_print"></block>
-    <block type="timed_condition"></block>
-  </category>
-</xml>
+<!-- CODE PAR DÉFAUT -->
+<script type="text/plain" id="defaultCode">
+</script>
 
 <script src="./settings.js"></script>
 <script type="module">
 import AudioAPI from "./audio/AudioAPI.js";
 
-const jsGen = Blockly.JavaScript;
+let isRunning = false;
+let hasWarnedModified = false;
+let isHardwareInit = false; // Permet de savoir si l'audio et le midi ont été initialisés
 
-/* =========================
-   CONFIG DU BLOC TEMPORISÉ
-   ========================= */
-const TIMED_CONDITION_FEATURES = {
-  bool: true,
-  gt: true,
-  gte: true,
-  lt: true,
-  lte: true,
-  eq: true,
-  timeToggle: true,
-  rangeMode: true
+// Logique pour basculer entre mode Prestation et mode Modification
+const toggleViewBtn = document.getElementById("toggleViewBtn");
+toggleViewBtn.onclick = () => {
+  document.body.classList.toggle("perf-mode");
+  if (document.body.classList.contains("perf-mode")) {
+    toggleViewBtn.innerText = "VUE MODIFICATION";
+    toggleViewBtn.className = "btn btn-edit";
+  } else {
+    toggleViewBtn.innerText = "MODE PRESTATION";
+    toggleViewBtn.className = "btn btn-run";
+    // Rafraîchir l'éditeur CodeMirror pour éviter les bugs d'affichage
+    setTimeout(() => editor.refresh(), 10);
+  }
 };
 
-function buildOperatorItems() {
-  return [
-    TIMED_CONDITION_FEATURES.bool ? ["TRUE / FALSE", "BOOL"] : null,
-    TIMED_CONDITION_FEATURES.gt ? [">", ">"] : null,
-    TIMED_CONDITION_FEATURES.gte ? [">=", ">="] : null,
-    TIMED_CONDITION_FEATURES.lt ? ["<", "<"] : null,
-    TIMED_CONDITION_FEATURES.lte ? ["<=", "<="] : null,
-    TIMED_CONDITION_FEATURES.eq ? ["=", "=="] : null
-  ].filter(Boolean);
+/* =========================
+   GESTION DES SWITCHES (PRESTATION)
+   ========================= */
+window.switchStates = {};
+window.registeredSwitches = new Set();
+
+function clearSwitchesUI() {
+  document.getElementById("switchesContainer").innerHTML = "";
+  window.registeredSwitches.clear();
+}
+
+function getSwitch(name, defaultVal = true) {
+  if (!window.registeredSwitches.has(name)) {
+    window.registeredSwitches.add(name);
+
+    if (window.switchStates[name] === undefined) {
+      window.switchStates[name] = defaultVal;
+    }
+
+    const container = document.getElementById("switchesContainer");
+    const div = document.createElement("div");
+    div.className = "switch-item";
+
+    const label = document.createElement("div");
+    label.className = "switch-label";
+    label.textContent = name;
+
+    const labelSwitch = document.createElement("label");
+    labelSwitch.className = "switch";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = window.switchStates[name];
+    input.onchange = (e) => {
+      window.switchStates[name] = e.target.checked;
+    };
+
+    const span = document.createElement("span");
+    span.className = "slider";
+
+    labelSwitch.appendChild(input);
+    labelSwitch.appendChild(span);
+    div.appendChild(label);
+    div.appendChild(labelSwitch);
+    container.appendChild(div);
+  }
+  return window.switchStates[name];
 }
 
 /* =========================
-   DONNÉES AUDIO
+   INITIALISATION DE L'ÉDITEUR
    ========================= */
-let audioData = {
-  bpm: 0,
-  dropRatio: 0,
-  rms: 0,
-  beat: false,
-  theme: "Rock",
-  notes: [
-    { active: false, value: 0 },
-    { active: false, value: 0 },
-    { active: false, value: 0 }
+const editorTextArea = document.getElementById("codeEditor");
+const editor = CodeMirror.fromTextArea(editorTextArea, {
+  mode: "javascript",
+  theme: "monokai",
+  lineNumbers: true,
+  matchBrackets: true,
+  autoCloseBrackets: true,
+  indentUnit: 2,
+  tabSize: 2,
+  extraKeys: {
+    "Ctrl-/": "toggleComment",
+    "Cmd-/": "toggleComment"
+  }
+});
+
+const DEFAULT_CODE = document.getElementById("defaultCode").textContent.trim();
+
+const apiSnippets = {
+  prestation: [
+    { code: 'getSwitch("Nom du Switch", true)', desc: "Crée un bouton UI dynamique" },
+    { code: 'if (getSwitch("BPM", true)) {\n  // Code\n}', desc: "Condition d'exécution (On/Off)" }
+  ],
+  audio: [
+    { code: "audio.bpm", desc: "Valeur actuelle du BPM" },
+    { code: "audio.dropRatio", desc: "Énergie / Drop ratio" },
+    { code: "audio.rms", desc: "Volume RMS" },
+    { code: "audio.beat", desc: "Booléen: true si sur un beat" },
+    { code: "audio.theme", desc: "Thème actuel (ex: 'Rock')" },
+    { code: "audio.primaryColor", desc: "couleur primaire" },
+    { code: "audio.secondaryColor", desc: "couleur secondaire" }
+  ],
+  midi: [
+    { code: "midi.lastNote", desc: "Dernière note MIDI reçue" },
+    { code: "midi.lastVelocity", desc: "Dernière vélocité reçue" }
+  ],
+  actions: [
+    { code: "while (isRunning()) {\n  await sleep(50);\n}", desc: "Boucle principale" },
+    { code: "await sleep(100);", desc: "Pause l'exécution (en ms)" },
+    { code: "sendMidiNote(60, 100, 1);", desc: "Envoyer note(note, vel, ch)" },
+    { code: "printToConsole('Message');", desc: "Afficher dans la console" }
   ]
 };
 
-function normalizeNotes(state) {
-  const out = [
-    { active: false, value: 0 },
-    { active: false, value: 0 },
-    { active: false, value: 0 }
-  ];
+function buildSidebar() {
+  const insertSnippet = (code) => {
+    const doc = editor.getDoc();
+    const cursor = doc.getCursor();
+    doc.replaceRange(code, cursor);
+    editor.focus();
+  };
 
-  const notes = Array.isArray(state?.notes) ? state.notes : [];
+  const createItems = (list, containerId) => {
+    const container = document.getElementById(containerId);
+    list.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "api-item";
+      li.innerHTML = `<div>${item.code}</div><span class="api-item-desc">${item.desc}</span>`;
+      li.onclick = () => insertSnippet(item.code);
+      container.appendChild(li);
+    });
+  };
 
-  for (let i = 0; i < 3; i++) {
-    const n = notes[i] || {};
-    const value = Number(
-      n.value ??
-      n.note ??
-      n.midi ??
-      n.pitch ??
-      n.num ??
-      0
-    ) || 0;
-
-    out[i] = {
-      active: !!n.active,
-      value
-    };
-  }
-
-  return out;
+  createItems(apiSnippets.prestation, "apiPrestation");
+  createItems(apiSnippets.audio, "apiAudio");
+  createItems(apiSnippets.midi, "apiMidi");
+  createItems(apiSnippets.actions, "apiActions");
 }
+buildSidebar();
 
-/* =========================
-   DONNÉES MIDI
-   ========================= */
-let midiData = {
-  connected: false,
-  lastNote: -1,
-  lastVelocity: 0,
-  lastChannel: 0,
-  lastEvent: "",
-  activeNotes: Array(128).fill(false)
+const popupModal = document.getElementById("popupModal");
+function showPopup() { popupModal.classList.add("active"); }
+function hidePopup() { popupModal.classList.remove("active"); }
+
+document.getElementById("popupCloseBtn").onclick = hidePopup;
+document.getElementById("popupRestartBtn").onclick = () => {
+  hidePopup();
+  restartScript();
 };
 
-let midiAccess = null;
-let midiOutput = null;
+const SAVE_KEY = "js_project_v3_perf";
 
-function updateMidiStatus() {
-  const el = document.getElementById("midiStatus");
-  el.innerText = midiData.connected ? "MIDI: ON" : "MIDI: OFF";
+function saveWorkspace() {
+  localStorage.setItem(SAVE_KEY, editor.getValue());
 }
+
+function loadWorkspace() {
+  const code = localStorage.getItem(SAVE_KEY);
+  if (code) editor.setValue(code);
+  else editor.setValue(DEFAULT_CODE);
+}
+
+editor.on("change", () => {
+  saveWorkspace();
+  if (isRunning && !hasWarnedModified) {
+    hasWarnedModified = true;
+    showPopup();
+  }
+});
+
+loadWorkspace();
+
+/* =========================
+   DONNÉES AUDIO / MIDI
+   ========================= */
+const audio = new AudioAPI({
+  onFrame: (s) => {
+    audioData.bpm = Number(s?.bpm) || 0;
+    audioData.dropRatio = Number(s?.dropRatio) || 0;
+    audioData.rms = Number(s?.state?.dropRatio ?? s?.state?.rms ?? s?.rms ?? s?.dropRatio ?? 0) || 0;
+    audioData.beat = !!s?.beat; audioData.theme = String(s?.theme || "Rock");
+    if (s?.primaryColor) audioData.primaryColor = { ...s.primaryColor };
+    if (s?.secondaryColor) audioData.secondaryColor = { ...s.secondaryColor };
+
+    document.getElementById("bpm").innerText = `BPM: ${Math.round(audioData.bpm)}`;
+    document.getElementById("beat").classList.toggle("active", audioData.beat);
+  }
+});
+
+let audioData = { bpm: 0, dropRatio: 0, rms: 0, beat: false, theme: "Rock", primaryColor: { hex: "#334155", name: "Aucune" }, secondaryColor: { hex: "#334155", name: "Aucune" }, notes: [] };
+let midiData = { connected: false, lastNote: -1, lastVelocity: 0, lastChannel: 0, lastEvent: "", activeNotes: Array(128).fill(false) };
+let midiAccess = null; let midiOutput = null;
+
+function updateMidiStatus() { document.getElementById("midiStatus").innerText = midiData.connected ? "MIDI: ON" : "MIDI: OFF"; }
 
 function bindMidiInputs() {
   if (!midiAccess) return;
-
-  midiAccess.inputs.forEach((input) => {
-    input.onmidimessage = handleMidiMessage;
-  });
+  midiAccess.inputs.forEach((input) => { input.onmidimessage = handleMidiMessage; });
 }
 
 function handleMidiMessage(event) {
   const data = event.data || [];
-  const status = data[0] ?? 0;
-  const note = data[1] ?? 0;
-  const velocity = data[2] ?? 0;
-
-  const type = status & 0xF0;
-  const channel = (status & 0x0F) + 1;
-
-  midiData.lastChannel = channel;
-  midiData.lastNote = note;
-  midiData.lastVelocity = velocity;
-
-  if (type === 0x90 && velocity > 0) {
-    midiData.lastEvent = "noteon";
-    midiData.activeNotes[note] = true;
-  } else if (type === 0x80 || (type === 0x90 && velocity === 0)) {
-    midiData.lastEvent = "noteoff";
-    midiData.activeNotes[note] = false;
-  } else {
-    midiData.lastEvent = "other";
-  }
+  const status = data[0] ?? 0; const note = data[1] ?? 0; const velocity = data[2] ?? 0;
+  const type = status & 0xF0; const channel = (status & 0x0F) + 1;
+  midiData.lastChannel = channel; midiData.lastNote = note; midiData.lastVelocity = velocity;
+  if (type === 0x90 && velocity > 0) { midiData.lastEvent = "noteon"; midiData.activeNotes[note] = true; } 
+  else if (type === 0x80 || (type === 0x90 && velocity === 0)) { midiData.lastEvent = "noteoff"; midiData.activeNotes[note] = false; } 
+  else { midiData.lastEvent = "other"; }
 }
 
 async function initMidi() {
-  if (!navigator.requestMIDIAccess) {
-    alert("Web MIDI non supporté dans ce navigateur.");
-    return;
-  }
-
+  if (!navigator.requestMIDIAccess) { printToConsole("Web MIDI non supporté"); return; }
   try {
     midiAccess = await navigator.requestMIDIAccess({ sysex: false });
     midiData.connected = true;
-
     const outputs = Array.from(midiAccess.outputs.values());
     midiOutput = outputs[0] || null;
-
     bindMidiInputs();
-
-    midiAccess.onstatechange = () => {
-      bindMidiInputs();
-      const outputs = Array.from(midiAccess.outputs.values());
-      midiOutput = outputs[0] || null;
-    };
-
+    midiAccess.onstatechange = () => { bindMidiInputs(); midiOutput = Array.from(midiAccess.outputs.values())[0] || null; };
     updateMidiStatus();
-  } catch (e) {
-    midiData.connected = false;
-    updateMidiStatus();
-    alert("Impossible d'activer MIDI.");
-  }
+  } catch (e) { midiData.connected = false; updateMidiStatus(); printToConsole("Impossible d'activer MIDI."); }
 }
 
-// Tableaux pour suivre l'état de chaque note MIDI (0 à 127)
 const lastSendTimeByNote = new Array(128).fill(0);
-
 function sendMidiNote(note, velocity = 100, channel = 1) {
-  if (!midiOutput) {
-    printToConsole("MIDI output indisponible");
-    return;
-  }
-
-  // Sécurisation des paramètres
+  if (!midiOutput) return;
   const n = Math.max(0, Math.min(127, Number(note) || 0));
   const v = Math.max(0, Math.min(127, Number(velocity) || 0));
   const ch = Math.max(1, Math.min(16, Number(channel) || 1)) - 1;
-
   const currentTime = performance.now();
-
-  // 1. Limiteur 30 Hz : Si l'appel est trop rapproché du dernier ENVOI (~33.33ms)
-  if (currentTime - lastSendTimeByNote[n] < 33.33) {
-    return; // On ignore le spam trop rapide
-  }
-
-  // 2. Envoi de la nouvelle valeur (Note On uniquement, pas de Note Off)
+  if (currentTime - lastSendTimeByNote[n] < 33.33) return;
   midiOutput.send([0x90 | ch, n, v]);
   lastSendTimeByNote[n] = currentTime;
 }
 
-/* =========================
-   BLOCS AUDIO
-   ========================= */
-
-Blockly.Blocks['get_bpm'] = {
-  init: function() {
-    this.appendDummyInput().appendField("BPM");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_bpm'] = () => ['audio.bpm', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_power'] = {
-  init: function() {
-    this.appendDummyInput().appendField("ENERGY");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_power'] = () => ['audio.power', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_rms'] = {
-  init: function() {
-    this.appendDummyInput().appendField("RMS");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_rms'] = () => ['audio.rms', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_beat'] = {
-  init: function() {
-    this.appendDummyInput().appendField("BEAT");
-    this.setOutput(true, "Boolean");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_beat'] = () => ['audio.beat', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_theme'] = {
-  init: function() {
-    this.appendDummyInput().appendField("THEME");
-    this.setOutput(true, "String");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_theme'] = () => ['audio.theme', jsGen.ORDER_ATOMIC];
-
-/* Booléens */
-Blockly.Blocks['get_key_a_active'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 1 ACTIVE");
-    this.setOutput(true, "Boolean");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_key_a_active'] = () => ['audio.notes[0] && audio.notes[0].active', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_key_b_active'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 2 ACTIVE");
-    this.setOutput(true, "Boolean");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_key_b_active'] = () => ['audio.notes[1] && audio.notes[1].active', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_key_c_active'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 3 ACTIVE");
-    this.setOutput(true, "Boolean");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_key_c_active'] = () => ['audio.notes[2] && audio.notes[2].active', jsGen.ORDER_ATOMIC];
-
-/* Numériques pour brancher sur SEND MIDI NOTE */
-Blockly.Blocks['get_note_1_value'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 1 VALUE");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_note_1_value'] = () => ['audio.notes[0] ? audio.notes[0].value : 0', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_note_2_value'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 2 VALUE");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_note_2_value'] = () => ['audio.notes[1] ? audio.notes[1].value : 0', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['get_note_3_value'] = {
-  init: function() {
-    this.appendDummyInput().appendField("NOTE 3 VALUE");
-    this.setOutput(true, "Number");
-    this.setStyle('audio_style');
-  }
-};
-jsGen.forBlock['get_note_3_value'] = () => ['audio.notes[2] ? audio.notes[2].value : 0', jsGen.ORDER_ATOMIC];
-
-/* =========================
-   BLOCS MIDI
-   ========================= */
-
-Blockly.Blocks['midi_send_note'] = {
-  init: function() {
-    this.appendValueInput("NOTE")
-      .setCheck("Number")
-      .appendField("SEND MIDI NOTE");
-
-    this.appendValueInput("VELOCITY")
-      .setCheck("Number")
-      .appendField("VEL");
-
-    this.appendValueInput("DURATION")
-      .setCheck("Number")
-      .appendField("DUR");
-
-    this.appendValueInput("CHANNEL")
-      .setCheck("Number")
-      .appendField("CH");
-
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setStyle('midi_style');
-  }
-};
-
-jsGen.forBlock['midi_send_note'] = (block, generator) => {
-  const note = generator.valueToCode(block, "NOTE", jsGen.ORDER_NONE) || "60";
-  const velocity = generator.valueToCode(block, "VELOCITY", jsGen.ORDER_NONE) || "100";
-  const duration = generator.valueToCode(block, "DURATION", jsGen.ORDER_NONE) || "300";
-  const channel = generator.valueToCode(block, "CHANNEL", jsGen.ORDER_NONE) || "1";
-  return `sendMidiNote(${note}, ${velocity}, ${duration}, ${channel});\n`;
-};
-
-Blockly.Blocks['midi_last_note'] = {
-  init: function() {
-    this.appendDummyInput().appendField("MIDI LAST NOTE");
-    this.setOutput(true, "Number");
-    this.setStyle('midi_style');
-  }
-};
-jsGen.forBlock['midi_last_note'] = () => ['midi.lastNote', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['midi_last_velocity'] = {
-  init: function() {
-    this.appendDummyInput().appendField("MIDI LAST VELOCITY");
-    this.setOutput(true, "Number");
-    this.setStyle('midi_style');
-  }
-};
-jsGen.forBlock['midi_last_velocity'] = () => ['midi.lastVelocity', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['midi_last_channel'] = {
-  init: function() {
-    this.appendDummyInput().appendField("MIDI LAST CHANNEL");
-    this.setOutput(true, "Number");
-    this.setStyle('midi_style');
-  }
-};
-jsGen.forBlock['midi_last_channel'] = () => ['midi.lastChannel', jsGen.ORDER_ATOMIC];
-
-Blockly.Blocks['midi_note_active'] = {
-  init: function() {
-    this.appendValueInput("NOTE")
-      .setCheck("Number")
-      .appendField("MIDI NOTE ACTIVE");
-
-    this.setOutput(true, "Boolean");
-    this.setStyle('midi_style');
-  }
-};
-jsGen.forBlock['midi_note_active'] = (block, generator) => {
-  const note = generator.valueToCode(block, "NOTE", jsGen.ORDER_NONE) || "0";
-  return [`!!midi.activeNotes[${note}]`, jsGen.ORDER_ATOMIC];
-};
-
-Blockly.Blocks['midi_last_is_on'] = {
-  init: function() {
-    this.appendDummyInput().appendField("MIDI LAST IS ON");
-    this.setOutput(true, "Boolean");
-    this.setStyle('midi_style');
-  }
-};
-jsGen.forBlock['midi_last_is_on'] = () => ['midi.lastEvent === "noteon"', jsGen.ORDER_ATOMIC];
-
-/* =========================
-   PRINT -> CONSOLE INTÉGRÉE
-   ========================= */
-
-Blockly.Blocks['custom_print'] = {
-  init: function() {
-    this.appendValueInput("T").appendField("PRINT");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setStyle('actions_style');
-  }
-};
-
-jsGen.forBlock['custom_print'] = (block, generator) => {
-  const value = generator.valueToCode(block, "T", jsGen.ORDER_NONE) || "''";
-  return `printToConsole(${value});\n`;
+document.getElementById("sendMidiTestBtn").onclick = () => {
+  const noteVal = parseInt(document.getElementById("midiTestNote").value, 10) || 0;
+  const velVal = parseInt(document.getElementById("midiTestVel").value, 10) || 0;
+  sendMidiNote(noteVal, velVal);
+  printToConsole(`[TEST MIDI] Note: ${noteVal} | Val: ${velVal}`);
 };
 
 /* =========================
-   BLOC TEMPORISÉ DYNAMIQUE
+   CONSOLE
    ========================= */
-
-Blockly.Blocks['timed_condition'] = {
-  init: function() {
-    this.appendValueInput("VAR")
-      .appendField("SI");
-
-    this.appendDummyInput("OP_INPUT")
-      .appendField(new Blockly.FieldDropdown(buildOperatorItems()), "OP");
-
-    if (TIMED_CONDITION_FEATURES.timeToggle) {
-      this.appendDummyInput("TIME_TOGGLE_INPUT")
-        .appendField("TEMPS")
-        .appendField(new Blockly.FieldCheckbox("TRUE"), "USE_TIME");
-    }
-
-    if (TIMED_CONDITION_FEATURES.rangeMode) {
-      this.appendDummyInput("TIME_MODE_INPUT")
-        .appendField(new Blockly.FieldDropdown([
-          ["FIXE", "FIXED"],
-          ["MIN / MAX", "RANGE"]
-        ]), "TIME_MODE");
-    }
-
-    this.appendValueInput("THRESHOLD")
-      .setCheck("Number")
-      .appendField("SEUIL");
-
-    this.appendValueInput("TIME")
-      .setCheck("Number")
-      .appendField("DURÉE");
-
-    this.appendValueInput("MIN_TIME")
-      .setCheck("Number")
-      .appendField("MIN");
-
-    this.appendValueInput("MAX_TIME")
-      .setCheck("Number")
-      .appendField("MAX");
-
-    this.setOutput(true, "Boolean");
-    this.setStyle('condition_style');
-    this.setTooltip("Retourne vrai si la condition reste vraie pendant la durée demandée.");
-    this.setHelpUrl("");
-
-    this.updateShape_ = () => {
-      const op = this.getFieldValue("OP");
-      const useTime = TIMED_CONDITION_FEATURES.timeToggle
-        ? (this.getFieldValue("USE_TIME") === "TRUE")
-        : true;
-      const timeMode = TIMED_CONDITION_FEATURES.rangeMode
-        ? (this.getFieldValue("TIME_MODE") || "FIXED")
-        : "FIXED";
-
-      const thresholdInput = this.getInput("THRESHOLD");
-      if (thresholdInput) {
-        thresholdInput.setVisible(op !== "BOOL");
-      }
-
-      const timeInput = this.getInput("TIME");
-      const minInput = this.getInput("MIN_TIME");
-      const maxInput = this.getInput("MAX_TIME");
-
-      if (timeInput) timeInput.setVisible(useTime && timeMode === "FIXED");
-      if (minInput) minInput.setVisible(useTime && timeMode === "RANGE");
-      if (maxInput) maxInput.setVisible(useTime && timeMode === "RANGE");
-
-      if (this.rendered) {
-        this.render();
-      }
-    };
-
-    this.setOnChange((event) => {
-      if (event && event.isUiEvent) return;
-      this.updateShape_();
-    });
-
-    this.updateShape_();
-  }
-};
-
-jsGen.forBlock['timed_condition'] = (block, generator) => {
-  const varCode = generator.valueToCode(block, "VAR", jsGen.ORDER_NONE) || "false";
-  const thresholdCode = generator.valueToCode(block, "THRESHOLD", jsGen.ORDER_NONE) || "0";
-  const op = block.getFieldValue("OP");
-
-  const useTime = TIMED_CONDITION_FEATURES.timeToggle
-    ? (block.getFieldValue("USE_TIME") === "TRUE")
-    : true;
-
-  const timeMode = TIMED_CONDITION_FEATURES.rangeMode
-    ? (block.getFieldValue("TIME_MODE") || "FIXED")
-    : "FIXED";
-
-  const timeCode = generator.valueToCode(block, "TIME", jsGen.ORDER_NONE) || "0";
-  const minTimeCode = generator.valueToCode(block, "MIN_TIME", jsGen.ORDER_NONE) || "0";
-  const maxTimeCode = generator.valueToCode(block, "MAX_TIME", jsGen.ORDER_NONE) || "0";
-
-  const key = JSON.stringify(block.id);
-
-  const conditionExpr = op === "BOOL"
-    ? `(!!(${varCode}))`
-    : `((${varCode}) ${op} (${thresholdCode}))`;
-
-  return [`
-(() => {
-  const now = performance.now();
-  const key = ${key};
-  const isTrue = ${conditionExpr};
-
-  if (!isTrue) {
-    conditionState.delete(key);
-    return false;
-  }
-
-  if (!${useTime}) {
-    return true;
-  }
-
-  if (!conditionState.has(key)) {
-    conditionState.set(key, now);
-    return false;
-  }
-
-  const start = conditionState.get(key);
-  const elapsed = now - start;
-
-  if (${JSON.stringify(timeMode)} === "FIXED") {
-    return elapsed >= Number(${timeCode});
-  }
-
-  const minT = Number(${minTimeCode});
-  const maxT = Number(${maxTimeCode});
-  return elapsed >= minT && elapsed <= maxT;
-})()
-`, jsGen.ORDER_ATOMIC];
-};
-
-/* =========================
-   CONSOLE INTÉGRÉE
-   ========================= */
-
 const logContainer = document.getElementById("logContent");
 const countEl = document.getElementById("count");
 let lineCount = 0;
@@ -783,264 +693,94 @@ let lineCount = 0;
 window.printToConsole = (msg) => {
   const div = document.createElement("div");
   div.className = "log-line";
-
-  let text = msg;
-  if (typeof msg === "boolean") text = msg ? "TRUE (Vrai)" : "FALSE (Faux)";
-  if (typeof msg === "object") {
-    try {
-      text = JSON.stringify(msg, null, 2);
-    } catch {
-      text = String(msg);
-    }
-  }
-
+  let text = typeof msg === "object" ? JSON.stringify(msg) : String(msg);
   div.textContent = `[${new Date().toLocaleTimeString()}] > ${text}`;
   logContainer.prepend(div);
   lineCount++;
-
-  if (lineCount > 1000) {
-    logContainer.removeChild(logContainer.lastChild);
-    lineCount--;
-  }
-
+  if (lineCount > 1000) { logContainer.removeChild(logContainer.lastChild); lineCount--; }
   countEl.innerText = `${lineCount}`;
 };
 
-window.clearLogs = () => {
-  logContainer.innerHTML = "";
-  lineCount = 0;
-  countEl.innerText = "0";
-};
+window.clearLogs = () => { logContainer.innerHTML = ""; lineCount = 0; countEl.innerText = "0"; };
 
 /* =========================
-   WORKSPACE
+   MOTEUR D'EXÉCUTION
    ========================= */
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const isRunningCheck = () => isRunning;
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
-const MUSIC_THEME = Blockly.Theme.defineTheme('musicAnalyser', {
-  blockStyles: {
-    // Blocs natifs Blockly
-    'logic_blocks':            { colourPrimary: '#1c2b6b', colourSecondary: '#111d4a', colourTertiary: '#2d41aa' },
-    'math_blocks':             { colourPrimary: '#0b4a3f', colourSecondary: '#072e28', colourTertiary: '#196b5c' },
-    'text_blocks':             { colourPrimary: '#7a2e0a', colourSecondary: '#4d1c06', colourTertiary: '#a84015' },
-    'list_blocks':             { colourPrimary: '#7a2e0a', colourSecondary: '#4d1c06', colourTertiary: '#a84015' },
-    'colour_blocks':           { colourPrimary: '#4a1a7a', colourSecondary: '#2d0f4d', colourTertiary: '#6b2aaa' },
-    'variable_blocks':         { colourPrimary: '#5c1040', colourSecondary: '#3d0a2a', colourTertiary: '#851a5c' },
-    'variable_dynamic_blocks': { colourPrimary: '#5c1040', colourSecondary: '#3d0a2a', colourTertiary: '#851a5c' },
-    'procedure_blocks':        { colourPrimary: '#3d0a2a', colourSecondary: '#260619', colourTertiary: '#5c1040' },
-    // Blocs personnalisés
-    'audio_style':     { colourPrimary: '#4a1d8a', colourSecondary: '#2e1257', colourTertiary: '#6b2dbf' },
-    'midi_style':      { colourPrimary: '#0a2e5c', colourSecondary: '#061c3d', colourTertiary: '#1548a0' },
-    'actions_style':   { colourPrimary: '#7a1515', colourSecondary: '#4d0d0d', colourTertiary: '#a82020' },
-    'condition_style': { colourPrimary: '#1a4060', colourSecondary: '#0d283d', colourTertiary: '#2a6090' },
-  },
-  categoryStyles: {
-    'audio_category':    { colour: '#6b2dbf' },
-    'midi_category':     { colour: '#1548a0' },
-    'logic_category':    { colour: '#2d41aa' },
-    'math_category':     { colour: '#196b5c' },
-    'text_category':     { colour: '#a84015' },
-    'variable_category': { colour: '#851a5c' },
-    'action_category':   { colour: '#a82020' },
-  },
-  componentStyles: {
-    workspaceBackgroundColour: '#0a0a0a',
-    toolboxBackgroundColour:   '#0f0f0f',
-    toolboxForegroundColour:   '#c0c0c0',
-    flyoutBackgroundColour:    '#141414',
-    flyoutForegroundColour:    '#c0c0c0',
-    flyoutOpacity:             1,
-    scrollbarColour:           '#2a2a2a',
-    scrollbarOpacity:          0.8,
-    insertionMarkerColour:     '#00ff88',
-    insertionMarkerOpacity:    0.5,
-    markerColour:              '#00ff88',
-    cursorColour:              '#00ff88',
-    selectedGlowColour:        '#00ff88',
-    selectedGlowOpacity:       0.4,
-    replacementGlowColour:     '#00cc66',
-    replacementGlowOpacity:    0.4,
-  },
-  fontStyle: {
-    family: '"Segoe UI", Inter, system-ui, sans-serif',
-    weight: '500',
-    size:   12,
-  },
-  startHats: false,
-});
+function startScript() {
+  isRunning = true;
+  hasWarnedModified = false;
+  document.getElementById("runBtn").innerText = "STOP";
+  document.getElementById("runBtn").className = "btn btn-edit";
 
-const workspace = Blockly.inject("blocklyDiv", {
-  toolbox: document.getElementById("toolbox"),
-  theme: MUSIC_THEME,
-  zoom: {
-    controls: true,
-    wheel: true
-  },
-  grid: {
-    spacing: 20,
-    length: 3,
-    colour: "#181818",
-    snap: true
-  },
-  trashcan: true
-});
-
-/* =========================
-   SAUVEGARDE AUTOMATIQUE
-   ========================= */
-
-const SAVE_KEY = "block_project_v9_dark";
-
-function saveWorkspace() {
-  const data = Blockly.serialization.workspaces.save(workspace);
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-}
-
-function loadWorkspace() {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return;
+  clearSwitchesUI();
 
   try {
-    const data = JSON.parse(raw);
-    workspace.clear();
-    Blockly.serialization.workspaces.load(data, workspace);
+    const code = editor.getValue();
+    const compiledFn = new AsyncFunction("audio", "midi", "printToConsole", "sendMidiNote", "sleep", "isRunning", "getSwitch", code);
+    compiledFn(audioData, midiData, window.printToConsole, sendMidiNote, sleep, isRunningCheck, getSwitch).catch(e => {
+      printToConsole("ERREUR : " + e.message); stopScript();
+    });
   } catch (e) {
-    console.warn("Impossible de charger la sauvegarde :", e);
+    alert("Erreur de Syntaxe: " + e.message); stopScript();
   }
 }
 
-workspace.addChangeListener((event) => {
-  if (!event.isUiEvent) {
-    saveWorkspace();
-  }
-});
+function stopScript() {
+  isRunning = false;
+  hasWarnedModified = false;
+  hidePopup();
+  document.getElementById("runBtn").innerText = "RUN";
+  document.getElementById("runBtn").className = "btn btn-run";
+}
 
-loadWorkspace();
+function restartScript() {
+  stopScript();
+  setTimeout(() => { startScript(); }, 50);
+}
 
-/* =========================
-   RUN
-   ========================= */
-
-let isRunning = false;
-let compiledFn = null;
-const conditionState = new Map();
-
-document.getElementById("runBtn").onclick = () => {
-  isRunning = !isRunning;
-
+// Lancement combiné Audio + Midi + Script
+document.getElementById("runBtn").onclick = async () => { 
   if (isRunning) {
-    try {
-      const code = jsGen.workspaceToCode(workspace);
-      compiledFn = new Function("audio", "midi", "printToConsole", "conditionState", "sendMidiNote", code);
-
-      document.body.classList.add("mode-run");
-      document.getElementById("runBtn").innerText = "EDIT";
-      document.getElementById("runBtn").className = "btn btn-edit";
-    } catch (e) {
-      alert("Erreur Blockly: " + e.message);
-      isRunning = false;
+    stopScript(); 
+  } else { 
+    if (!isHardwareInit) {
+      audio.start();
+      await initMidi();
+      isHardwareInit = true;
     }
-  } else {
-    document.body.classList.remove("mode-run");
-    document.getElementById("runBtn").innerText = "RUN";
-    document.getElementById("runBtn").className = "btn btn-run";
+    startScript(); 
   }
 };
 
 /* =========================
-   AUDIO
+   EXPORT / IMPORT / EXTRAS
    ========================= */
-
-const audio = new AudioAPI({
-  onFrame: (s) => {
-    audioData.bpm = Number(s?.bpm) || 0;
-    audioData.dropRatio = Number(s?.dropRatio) || 0;
-
-    audioData.rms = Number(
-      s?.state?.dropRatio ??
-      s?.state?.rms ??
-      s?.rms ??
-      s?.dropRatio ??
-      0
-    ) || 0;
-
-    audioData.beat = !!s?.beat;
-    audioData.theme = String(s?.theme || "Rock");
-    audioData.notes = normalizeNotes(s);
-
-    document.getElementById("bpm").innerText = `BPM: ${Math.round(audioData.bpm)}`;
-    document.getElementById("beat").classList.toggle("active", audioData.beat);
-
-    if (isRunning && compiledFn) {
-      try {
-        compiledFn(audioData, midiData, window.printToConsole, conditionState, sendMidiNote);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-});
-
-document.getElementById("audioBtn").onclick = () => {
-  audio.start();
-};
-
-/* =========================
-   MIDI
-   ========================= */
-
-document.getElementById("midiBtn").onclick = async () => {
-  await initMidi();
-};
-
-/* =========================
-   EXPORT / IMPORT
-   ========================= */
-
 document.getElementById("exportBtn").onclick = () => {
-  const data = Blockly.serialization.workspaces.save(workspace);
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
+  const code = editor.getValue();
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "project-blockly.json";
-  a.click();
-
-  URL.revokeObjectURL(url);
+  a.href = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
+  a.download = "script.analyser"; a.click();
 };
 
 const fileInput = document.getElementById("fileInput");
-
-document.getElementById("importBtn").onclick = () => {
-  fileInput.click();
-};
-
+document.getElementById("importBtn").onclick = () => { fileInput.click(); };
 fileInput.onchange = () => {
-  const file = fileInput.files && fileInput.files[0];
-  if (!file) return;
-
+  const file = fileInput.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const json = JSON.parse(reader.result);
-      workspace.clear();
-      Blockly.serialization.workspaces.load(json, workspace);
-      saveWorkspace();
-    } catch (e) {
-      alert("Fichier invalide.");
-    }
-  };
-  reader.readAsText(file);
-  fileInput.value = "";
+  reader.onload = () => { editor.setValue(reader.result); saveWorkspace(); };
+  reader.readAsText(file); fileInput.value = "";
 };
-
-updateMidiStatus();
 
 window.addEventListener("DOMContentLoaded", function () {
   document.getElementById("openBPM-ViwerBtn").onclick = function () {
-    window.electronAPI.openTest();
+    if (window.electronAPI && window.electronAPI.openTest) window.electronAPI.openTest();
   };
 });
+updateMidiStatus();
 </script>
 
 </body>

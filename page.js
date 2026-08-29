@@ -65,12 +65,20 @@ function resetUi() {
   S("notes").style.display = "none";
 
   S("bpmVal").textContent = "—";
-  S("themeVal") && (S("themeVal").textContent = "—"); // sécurité si ajout futur
+  if (S("themeVal")) S("themeVal").textContent = "—"; 
 
   S("rmsVal").textContent = "—";
   S("dropVal").textContent = "1.0x";
 
   S("dropLed").classList.remove("drop-active");
+
+  S("c1Led").style.backgroundColor = "#222";
+  S("c1Led").style.boxShadow = "none";
+  S("c1Text").textContent = "—";
+
+  S("c2Led").style.backgroundColor = "#222";
+  S("c2Led").style.boxShadow = "none";
+  S("c2Text").textContent = "—";
 
   clearInterval(ledTimer);
   x.clearRect(0, 0, g.width, g.height);
@@ -112,7 +120,6 @@ function render(state) {
   }
 
   // ---------------- ENERGY / DROP ----------------
-
   if (state.isDrop) {
     S("dropLed").classList.add("drop-active");
     S("dropLed").textContent = "🔥";
@@ -142,6 +149,21 @@ function render(state) {
   if (state.bpm) {
     S("bpmVal").textContent = Math.round(state.bpm);
     startLed(state.bpm);
+  }
+
+  // ---------------- COLORS ----------------
+  console.log("Primary Color:", state.primaryColor);
+  console.log("Secondary Color:", state.secondaryColor);
+  if (state.primaryColor && state.primaryColor.hex) {
+    S("c1Led").style.backgroundColor = state.primaryColor.hex;
+    S("c1Led").style.boxShadow = `0 0 20px ${state.primaryColor.hex}`;
+    S("c1Text").textContent = state.primaryColor.name;
+  }
+
+  if (state.secondaryColor && state.secondaryColor.hex) {
+    S("c2Led").style.backgroundColor = state.secondaryColor.hex;
+    S("c2Led").style.boxShadow = `0 0 20px ${state.secondaryColor.hex}`;
+    S("c2Text").textContent = state.secondaryColor.name;
   }
 
   draw(state.traces);
