@@ -2,7 +2,7 @@
 
 Ce projet est une application de bureau basée sur [Electron](https://www.electronjs.org/).  
 
-L'application automatise à 100 % le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
+L'application automatise à 99% le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
 
 Fonctionnalités principales :
   - Conversion son en couleur : Un algorithme dédié analyse le signal audio pour le convertir directement en palettes de couleurs (primaire et secondaire) appliquées aux projecteurs.
