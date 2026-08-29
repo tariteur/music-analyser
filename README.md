@@ -2,6 +2,9 @@
 
 Ce projet est une application de bureau basée sur [Electron](https://www.electronjs.org/).  
 
+Passionné par la lumière et DJ, je voulais proposer une prestation la plus interactive possible avec la musique — comme si un véritable light-jockey gérait le show en direct.
+Ne trouvant pas mon bonheur parmi les solutions existantes comme Lightjams ou d'autres logiciels spécialisés dans la synchronisation lumière/son, j'ai décidé d'en créer un sur mesure pour les bidouilleurs.
+
 L'application automatise à 99% le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
 
 Fonctionnalités principales :
