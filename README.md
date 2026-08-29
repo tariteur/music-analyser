@@ -15,7 +15,7 @@ Téléchargez l'application prête à l'emploi pour **Windows** :
 
 Si vous souhaitez compiler manuellement avec le code source :  
 
-[![Code source](https://img.shields.io/badge/Code%20source-GitHub-blue)](https://github.com/tariteur/BPM-Finder-To-MIDI)
+[![Code source](https://img.shields.io/badge/Code%20source-GitHub-blue)](https://github.com/tariteur/music-analyser)
 
 ---
 
