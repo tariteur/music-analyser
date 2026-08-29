@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>4.14.3</Version>
+  <Author>kevin</Author>
+ </Creator>
+ <Manufacturer>fixe</Manufacturer>
+ <Model>fixe</Model>
+ <Type>Color Changer</Type>
+ <Channel Name="I">
+  <Group Byte="0">Intensity</Group>
+ </Channel>
+ <Channel Name="R">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+ </Channel>
+ <Channel Name="G">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+ </Channel>
+ <Channel Name="B">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+ </Channel>
+ <Channel Name="S">
+  <Group Byte="0">Shutter</Group>
+ </Channel>
+ <Mode Name="fixe">
+  <Channel Number="0">I</Channel>
+  <Channel Number="1">R</Channel>
+  <Channel Number="2">G</Channel>
+  <Channel Number="3">B</Channel>
+  <Channel Number="4">S</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="" Lumens="0" ColourTemperature="0"/>
+  <Dimensions Weight="0" Width="0" Height="0" Depth="0"/>
+  <Lens Name="Other" DegreesMin="0" DegreesMax="0"/>
+  <Focus Type="Fixed" PanMax="0" TiltMax="0"/>
+  <Technical PowerConsumption="0" DmxConnector="5-pin"/>
+ </Physical>
+</FixtureDefinition>

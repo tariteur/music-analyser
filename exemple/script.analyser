@@ -1,0 +1,290 @@
+// ==========================================
+// SEUILS DE DÉCLENCHEMENT ET HYSTÉRÉSIS
+// ==========================================
+const SEUIL_RMS_HAUT = 70;          // RMS minimum (%) pour PASSER en mode Intense
+const SEUIL_DROP_HAUT = 100;       // DropRatio minimum pour PASSER en mode Intense
+
+const SEUIL_RMS_BAS = 50;           // RMS doit chuter sous ce seuil (%) pour RETOMBER en Calme
+const SEUIL_DROP_BAS = 60;          // DropRatio doit chuter sous ce seuil pour RETOMBER en Calme
+
+const DUREE_MIN_INTENSE_MS = 1000; // Une scène Intense reste active au moins 1 seconde
+const DUREE_MIN_CALME_MS = 1000;   // Une scène Calme reste active au moins 1 seconde
+const DUREE_CONFIRMATION_INTENSE_MS = 1000; // Temps de confirmation requis avant de passer en Intense
+
+// Sécurité pour éviter les clics multiples simultanés
+const COOLDOWN_THEME_MS = 500;     // Délai minimum de 500ms entre deux clics de thème
+
+// Dictionnaire associant chaque genre à 2 notes MIDI (calme / intense)
+const THEME_MAP = {
+  "Jazz": { calme: 78, intense: 79 },
+  "Blues": { calme: 78, intense: 79 },
+  "Electronic": { calme: 72, intense: 73 },
+  "Techno": { calme: 72, intense: 73 },
+  "House": { calme: 72, intense: 73 },
+  "Trance": { calme: 72, intense: 73 },
+  "Dubstep": { calme: 72, intense: 73 },
+  "Hip hop": { calme: 74, intense: 75 },
+  "Rap": { calme: 74, intense: 75 },
+  "Disco": { calme: 74, intense: 75 },
+  "Funk": { calme: 74, intense: 75 },
+  "Pop": { calme: 76, intense: 77 },
+  "Folk": { calme: 76, intense: 77 },
+  "Country": { calme: 76, intense: 77 },
+  "Rock": { calme: 80, intense: 81 },
+  "Metal": { calme: 80, intense: 81 },
+  "Punk": { calme: 80, intense: 81 },
+  "Indie": { calme: 80, intense: 81 },
+  "Classical": { calme: 70, intense: 71 },
+  "Ambient": { calme: 70, intense: 71 },
+  "Reggae": { calme: 82, intense: 83 },
+  "Soul": { calme: 82, intense: 83 },
+  "Gospel": { calme: 82, intense: 83 }
+};
+
+// Scène lyres disco
+const SHOWTECH_MAP = 30;
+
+// Valeurs midi associées à chaque couleur des lyres
+const COLOR_FADER_MAP = {
+  "blanc": 0, "rouge": 10, "jaune": 15, "bleu": 20, "vert": 25,
+  "orange": 30, "rose": 35, "bleu ciel": 40, "bleu ciel-rose": 45,
+  "rose-orange": 50, "orange-vert": 55, "vert-bleu": 60,
+  "bleu-jaune": 65, "jaune-rouge": 70
+};
+
+function getClosestColorDmx(colorName, hex) {
+  if (colorName) {
+    const cleanName = colorName.toLowerCase().trim();
+    if (COLOR_FADER_MAP[cleanName] !== undefined) {
+      return COLOR_FADER_MAP[cleanName];
+    }
+  }
+  const rgb = hexToRgb(hex);
+  if (rgb.r > 200 && rgb.g > 200 && rgb.b > 200) return COLOR_FADER_MAP["blanc"];
+  if (rgb.r > 200 && rgb.g < 100 && rgb.b < 100) return COLOR_FADER_MAP["rouge"];
+  if (rgb.r > 200 && rgb.g > 200 && rgb.b < 100) return COLOR_FADER_MAP["jaune"];
+  if (rgb.r < 100 && rgb.g > 200 && rgb.b < 100) return COLOR_FADER_MAP["vert"];
+  if (rgb.r < 100 && rgb.g < 100 && rgb.b > 200) return COLOR_FADER_MAP["bleu"];
+  if (rgb.r > 200 && rgb.g > 100 && rgb.b < 100) return COLOR_FADER_MAP["orange"];
+  if (rgb.r > 200 && rgb.g < 100 && rgb.b > 100) return COLOR_FADER_MAP["rose"];
+  return 0;
+}
+
+function hexToRgb(hex) {
+  if (!hex) return { r: 0, g: 0, b: 0 };
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const bigint = parseInt(hex, 16);
+  if (isNaN(bigint)) return { r: 0, g: 0, b: 0 };
+  return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+
+await Promise.all([
+  // Boucle 1 : Boucle de test (Envoie la note 70 toutes les 1000 ms)
+  (async () => {
+    while (isRunning()) {
+      if (!getSwitch("Boucle Test", true)) {
+        await sleep(200);
+        continue;
+      }
+
+      sendMidiNote(70, 127, 1);
+      printToConsole("Test : Envoi Note 70 (Vélocité 127, Canal 1)");
+      await sleep(1000);
+    }
+  })(),
+
+  // Boucle 2 : Envoi continu du BPM
+  (async () => {
+    let lastBpm = audio.bpm || 120;
+    let stableCount = 0;
+    const requiredStableChecks = 40; 
+
+    while (isRunning()) {
+      // Évaluation en direct pour activer/désactiver dynamiquement
+      if (!getSwitch("Boucle BPM", true)) {
+        await sleep(200);
+        continue;
+      }
+
+      const currentBpm = audio.bpm || 120;
+
+      if (currentBpm === lastBpm) {
+        stableCount++;
+      } else {
+        stableCount = 0;
+        lastBpm = currentBpm;
+      }
+
+      if (stableCount >= requiredStableChecks) {
+        const velocity = Math.min(127, Math.max(0, Math.round(762 / lastBpm)));
+        sendMidiNote(66, velocity, 1);
+      }
+      await sleep(50);
+    }
+  })(),
+
+  // Boucle 3 : Sélection du chaser
+  (async () => {
+    let derniereNoteActive = null;
+    let modeActuelIsIntense = false;
+    let tempsDernierChangementMode = 0;
+    let tempsDebutConditionsIntense = 0;
+    let tempsDernierClicTheme = 0;
+    let isClicking = false;
+
+    while (isRunning()) {
+      // Évaluation en direct pour activer/désactiver dynamiquement
+      if (!getSwitch("Boucle Chaser (Thèmes)", true)) {
+        await sleep(200);
+        continue; 
+      }
+
+      const themeActuel = audio.theme;
+      const rmsActuel = audio.rms || 0;
+      const dropRatioActuel = audio.dropRatio || 0;
+      const maintenant = Date.now();
+
+      const veutPasserIntense = (rmsActuel >= SEUIL_RMS_HAUT) && (dropRatioActuel >= SEUIL_DROP_HAUT);
+      const veutPasserCalme = (rmsActuel < SEUIL_RMS_BAS) || (dropRatioActuel < SEUIL_DROP_BAS);
+
+      if (!modeActuelIsIntense) {
+        if (veutPasserIntense) {
+          if (tempsDebutConditionsIntense === 0) tempsDebutConditionsIntense = maintenant;
+          else if (maintenant - tempsDebutConditionsIntense >= DUREE_CONFIRMATION_INTENSE_MS) {
+            if (maintenant - tempsDernierChangementMode >= DUREE_MIN_CALME_MS) {
+              modeActuelIsIntense = true;
+              tempsDernierChangementMode = maintenant;
+              tempsDebutConditionsIntense = 0;
+            }
+          }
+        } else {
+          tempsDebutConditionsIntense = 0;
+        }
+      } else {
+        tempsDebutConditionsIntense = 0;
+        if (veutPasserCalme && (maintenant - tempsDernierChangementMode >= DUREE_MIN_INTENSE_MS)) {
+          modeActuelIsIntense = false;
+          tempsDernierChangementMode = maintenant;
+        }
+      }
+
+      const chasers = THEME_MAP[themeActuel];
+
+      if (chasers && !isClicking) {
+        // Interrogation du switch à chaque cycle
+        const forcerCalme = getSwitch("Forcer Mode Calme", false);
+        const noteCible = (modeActuelIsIntense && !forcerCalme) ? chasers.intense : chasers.calme;
+
+        if (noteCible !== derniereNoteActive && (maintenant - tempsDernierClicTheme >= COOLDOWN_THEME_MS)) {
+          isClicking = true;
+          derniereNoteActive = noteCible;
+          tempsDernierClicTheme = maintenant;
+
+          sendMidiNote(noteCible, 127, 1);
+          await sleep(50);
+          sendMidiNote(noteCible, 0, 1);
+
+          const mode = (modeActuelIsIntense && !forcerCalme) ? "Intense" : "Calme";
+          printToConsole("Chaser " + mode + " [" + themeActuel + "] -> Impulsion Note " + noteCible);
+          
+          isClicking = false;
+        }
+      } else if (themeActuel && derniereNoteActive === null) {
+        printToConsole("Style inconnu : " + themeActuel);
+      }
+
+      await sleep(100);
+    }
+  })(),
+
+  // Boucle 4 : Gestion des PARs et Lyre
+  (async () => {
+    let currentStablePrimaryHex = null;
+    let candidatePrimaryHex = null;
+    let candidatePrimaryStartTime = 0;
+    
+    let currentStableSecondaryHex = null;
+    let candidateSecondaryHex = null;
+    let candidateSecondaryStartTime = 0;
+    
+    let currentStableLyreHex = null;
+    let candidateLyreHex = null;
+    let candidateLyreStartTime = 0;
+
+    const COLOR_CONFIRMATION_DELAY_MS = 3000;
+
+    function sendParColorMidi(hexStr, colorName, prefixName, noteR, noteG, noteB) {
+      const rgb = hexToRgb(hexStr);
+      let velR = rgb.r >= 128 ? 127 : 0;
+      let velG = rgb.g >= 128 ? 127 : 0;
+      let velB = rgb.b >= 128 ? 127 : 0;
+      sendMidiNote(noteR, velR, 1);
+      sendMidiNote(noteG, velG, 1);
+      sendMidiNote(noteB, velB, 1);
+      printToConsole(`PAR Couleur ${prefixName} Validée : ${colorName || hexStr} -> MIDI (R:${velR} G:${velG} B:${velB})`);
+    }
+
+    while (isRunning()) {
+      // Évaluation en direct pour activer/désactiver dynamiquement
+      if (!getSwitch("Boucle PARs & Lyre", true)) {
+        await sleep(200);
+        continue;
+      }
+
+      const maintenant = Date.now();
+      const livePrimaryHex = audio.primaryColor ? audio.primaryColor.hex : null;
+      const livePrimaryName = audio.primaryColor ? audio.primaryColor.name : null;
+
+      if (livePrimaryHex) {
+        if (livePrimaryHex !== currentStablePrimaryHex) {
+          if (livePrimaryHex === candidatePrimaryHex) {
+            if (maintenant - candidatePrimaryStartTime >= COLOR_CONFIRMATION_DELAY_MS) {
+              currentStablePrimaryHex = livePrimaryHex;
+              sendParColorMidi(currentStablePrimaryHex, livePrimaryName, "Primaire", 90, 91, 92);
+            }
+          } else {
+            candidatePrimaryHex = livePrimaryHex;
+            candidatePrimaryStartTime = maintenant;
+          }
+        } else candidatePrimaryHex = null;
+      }
+
+      const liveSecondaryHex = audio.secondaryColor ? audio.secondaryColor.hex : null;
+      const liveSecondaryName = audio.secondaryColor ? audio.secondaryColor.name : null;
+
+      if (liveSecondaryHex) {
+        if (liveSecondaryHex !== currentStableSecondaryHex) {
+          if (liveSecondaryHex === candidateSecondaryHex) {
+            if (maintenant - candidateSecondaryStartTime >= COLOR_CONFIRMATION_DELAY_MS) {
+              currentStableSecondaryHex = liveSecondaryHex;
+              sendParColorMidi(currentStableSecondaryHex, liveSecondaryName, "Secondaire", 93, 94, 95);
+            }
+          } else {
+            candidateSecondaryHex = liveSecondaryHex;
+            candidateSecondaryStartTime = maintenant;
+          }
+        } else candidateSecondaryHex = null;
+      }
+
+      // Lyre : Envoie la couleur primaire convertie en valeur DMX sur la note 1
+      if (livePrimaryHex) {
+        if (livePrimaryHex !== currentStableLyreHex) {
+          if (livePrimaryHex === candidateLyreHex) {
+            if (maintenant - candidateLyreStartTime >= COLOR_CONFIRMATION_DELAY_MS) {
+              currentStableLyreHex = livePrimaryHex;
+              const dmxValue = getClosestColorDmx(livePrimaryName, livePrimaryHex);
+              sendMidiNote(1, dmxValue, 1);
+              printToConsole(`Lyre Couleur Primaire Validée : ${livePrimaryName || livePrimaryHex} -> Note 1 (Vélocité/DMX : ${dmxValue})`);
+            }
+          } else {
+            candidateLyreHex = livePrimaryHex;
+            candidateLyreStartTime = maintenant;
+          }
+        } else candidateLyreHex = null;
+      }
+
+      await sleep(200);
+    }
+  })()
+]);

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>4.14.3</Version>
+  <Author>kevin</Author>
+ </Creator>
+ <Manufacturer>lyre</Manufacturer>
+ <Model>lyre</Model>
+ <Type>Moving Head</Type>
+ <Channel Name="Pan" Preset="PositionPan"/>
+ <Channel Name="Tilt" Preset="PositionTilt"/>
+ <Channel Name="White" Preset="IntensityWhite"/>
+ <Channel Name="Strobe" Preset="ShutterStrobeSlowFast"/>
+ <Channel Name="Pan fine" Preset="PositionPanFine"/>
+ <Channel Name="Tilt fine" Preset="PositionTiltFine"/>
+ <Channel Name="Gobo wheel" Preset="GoboWheel"/>
+ <Channel Name="Gobo wheel2" Preset="GoboWheel"/>
+ <Channel Name="Gobo wheel3" Preset="GoboWheel"/>
+ <Channel Name="autre">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="255">No function</Capability>
+ </Channel>
+ <Channel Name="Gobo wheel4" Preset="GoboWheel"/>
+ <Channel Name="Gobo wheel5" Preset="GoboWheel"/>
+ <Channel Name="Gobo wheel6" Preset="GoboWheel"/>
+ <Channel Name="Gobo wheel7" Preset="GoboWheel"/>
+ <Mode Name="lyre">
+  <Channel Number="0" ActsOn="0">Pan</Channel>
+  <Channel Number="1" ActsOn="1">Pan fine</Channel>
+  <Channel Number="2" ActsOn="2">Tilt</Channel>
+  <Channel Number="3" ActsOn="3">Tilt fine</Channel>
+  <Channel Number="4" ActsOn="4">autre</Channel>
+  <Channel Number="5" ActsOn="5">White</Channel>
+  <Channel Number="6" ActsOn="6">Strobe</Channel>
+  <Channel Number="7" ActsOn="7">Gobo wheel</Channel>
+  <Channel Number="8">Gobo wheel2</Channel>
+  <Channel Number="9">Gobo wheel3</Channel>
+  <Channel Number="10">Gobo wheel4</Channel>
+  <Channel Number="11">Gobo wheel5</Channel>
+  <Channel Number="12">Gobo wheel6</Channel>
+  <Channel Number="13">Gobo wheel7</Channel>
+ </Mode>
+ <Physical>
+  <Bulb Type="" Lumens="0" ColourTemperature="0"/>
+  <Dimensions Weight="0" Width="0" Height="0" Depth="0"/>
+  <Lens Name="Other" DegreesMin="0" DegreesMax="0"/>
+  <Focus Type="Fixed" PanMax="0" TiltMax="0"/>
+  <Technical PowerConsumption="0" DmxConnector="5-pin"/>
+ </Physical>
+</FixtureDefinition>

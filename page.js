@@ -152,8 +152,6 @@ function render(state) {
   }
 
   // ---------------- COLORS ----------------
-  console.log("Primary Color:", state.primaryColor);
-  console.log("Secondary Color:", state.secondaryColor);
   if (state.primaryColor && state.primaryColor.hex) {
     S("c1Led").style.backgroundColor = state.primaryColor.hex;
     S("c1Led").style.boxShadow = `0 0 20px ${state.primaryColor.hex}`;
