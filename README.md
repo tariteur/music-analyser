@@ -3,6 +3,14 @@
 Ce projet est une application de bureau basée sur [Electron](https://www.electronjs.org/).  
 Ce README explique comment configurer, développer et empaqueter l'application.
 
+L'application automatise à 100 % le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
+
+Fonctionnalités principales :
+  - Conversion son en couleur : Un algorithme dédié analyse le signal audio pour le convertir directement en palettes de couleurs (primaire et secondaire) appliquées aux projecteurs.
+  - Analyse audio et IA : Détecte en temps réel le style musical (Reggae, Electro, etc.), le BPM, les beats, l'énergie, le RMS et la tonalité du morceau.
+  - Programmation en JavaScript : L'utilisateur écrit la logique de commande dans un éditeur JS intégré. Les données de l'IA et de l'analyseur audio sont directement accessibles via des fonctions et variables globales (audio.beat, audio.theme, audio.primaryColor, etc.).
+  - Envoi MIDI automatique : Génère les notes et valeurs de vélocité MIDI configurées dans le script pour piloter les lyres, PARs et chasers.
+  - Mode Prestation : Affiche une console de logs en direct avec le suivi des signaux MIDI envoyés, l'état des boucles et les paramètres audio calculés.
 ---
 
 <img width="1919" height="935" alt="musique analyser" src="https://github.com/user-attachments/assets/2385a143-3e64-4762-88aa-15a7af8e4752" />
