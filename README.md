@@ -14,6 +14,10 @@ Fonctionnalités principales :
 ---
 
 <img width="1919" height="935" alt="musique analyser" src="https://github.com/user-attachments/assets/2385a143-3e64-4762-88aa-15a7af8e4752" />
+<img width="1919" height="1023" alt="image" src="https://github.com/user-attachments/assets/0648724f-b59c-4acd-ad2a-d4c6c7349358" />
+
+IA local credit a @xenova/transformers (Hugging Face / Transformers.js)
+<img width="631" height="23" alt="image" src="https://github.com/user-attachments/assets/cafa7432-c364-44bd-aad5-26715a8eaccb" />
 
 ## Téléchargement
 
