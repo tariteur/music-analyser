@@ -9,3 +9,5 @@ release/
 *.log
 *.tmp
 .DS_Store
+
+editor_blockly.html
