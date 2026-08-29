@@ -1,7 +1,6 @@
 # BPM-Finder-To-MIDI
 
 Ce projet est une application de bureau basée sur [Electron](https://www.electronjs.org/).  
-Ce README explique comment configurer, développer et empaqueter l'application.
 
 L'application automatise à 100 % le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
 
