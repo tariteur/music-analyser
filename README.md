@@ -1,55 +1,55 @@
 # BPM-Finder-To-MIDI
 
-Ce projet est une application de bureau basée sur [Electron](https://www.electronjs.org/).  
+This project is a desktop application based on [Electron](https://www.electronjs.org/).  
 
-Passionné par la lumière et DJ, je voulais proposer une prestation la plus interactive possible avec la musique — comme si un véritable light-jockey gérait le show en direct.
-Ne trouvant pas mon bonheur parmi les solutions existantes comme Lightjams ou d'autres logiciels spécialisés dans la synchronisation lumière/son, j'ai décidé d'en créer une interface de comunication sur mesure pour les bidouilleurs et passionnée.
+As a lighting enthusiast and DJ, I wanted to offer the most interactive performance possible with the music — as if a real light-jockey were managing the show live.
+Not finding what I was looking for among existing solutions like Lightjams or other software specialized in light/sound synchronization, I decided to create a custom communication interface for tinkerers and enthusiasts.
 
-L'application automatise à 99% le contrôle de logiciels DMX (comme QLC+) via des signaux MIDI, en s'inspirant du fonctionnement d'un Wolfmix sous forme de logiciel PC.
+The application automates 99% of DMX software control (like QLC+) via MIDI signals, inspired by how a Wolfmix works but as PC software.
 
-Fonctionnalités principales :
-  - Conversion son en couleur : Un algorithme dédié analyse le signal audio pour le convertir directement en palettes de couleurs (primaire et secondaire) appliquées aux projecteurs.
-  - Analyse audio et IA : Détecte en temps réel le style musical (Reggae, Electro, etc.), le BPM, les beats, l'énergie, le RMS et la tonalité du morceau.
-  - Programmation en JavaScript : L'utilisateur écrit la logique de commande dans un éditeur JS intégré. Les données de l'IA et de l'analyseur audio sont directement accessibles via des fonctions et variables globales (audio.beat, audio.theme, audio.primaryColor, etc.).
-  - Envoi MIDI automatique : Génère les notes et valeurs de vélocité MIDI configurées dans le script pour piloter les lyres, PARs et chasers.
-  - Mode Prestation : Affiche une console de logs en direct avec le suivi des signaux MIDI envoyés, l'état des boucles et les paramètres audio calculés.
+Main features:
+  - Sound to color conversion: A dedicated algorithm analyzes the audio signal to convert it directly into color palettes (primary and secondary) applied to the lighting fixtures.
+  - Audio analysis and AI: Detects in real time the musical style (Reggae, Electro, etc.), BPM, beats, energy, RMS, and the key of the track.
+  - JavaScript programming: The user writes the control logic in an integrated JS editor. Data from the AI and audio analyzer are directly accessible via global functions and variables (audio.beat, audio.theme, audio.primaryColor, etc.).
+  - Automatic MIDI sending: Generates the MIDI notes and velocity values configured in the script to control moving heads, PARs, and chasers.
+  - Performance Mode: Displays a live log console tracking sent MIDI signals, loop status, and calculated audio parameters.
 ---
 
 <img width="1919" height="935" alt="musique analyser" src="https://github.com/user-attachments/assets/2385a143-3e64-4762-88aa-15a7af8e4752" />
 <img width="1919" height="1023" alt="image" src="https://github.com/user-attachments/assets/0648724f-b59c-4acd-ad2a-d4c6c7349358" />
 
-IA local credit a @xenova/transformers (Hugging Face / Transformers.js)
+Local AI credit to @xenova/transformers (Hugging Face / Transformers.js)
 <img width="631" height="23" alt="image" src="https://github.com/user-attachments/assets/cafa7432-c364-44bd-aad5-26715a8eaccb" />
 
-## Téléchargement
+## Download
 
-Téléchargez l'application prête à l'emploi pour **Windows** :
+Download the ready-to-use application for **Windows**:
 
-[![Télécharger pour Windows](https://img.shields.io/badge/Télécharger-Windows-brightgreen)](https://github.com/tariteur/music-analyser/releases/download/1.0.1/Musique.analyser.Setup.1.0.1.exe)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows-brightgreen)](https://github.com/tariteur/music-analyser/releases/download/1.0.1/Musique.analyser.Setup.1.0.1.exe)
 
-Si vous souhaitez compiler manuellement avec le code source :  
+If you want to compile it manually from the source code:  
 
-[![Code source](https://img.shields.io/badge/Code%20source-GitHub-blue)](https://github.com/tariteur/music-analyser)
-
----
-
-## Installation via Windows (classic)
-
-Avant de commencer, assurez-vous d'avoir installé :
-
-- [LoopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) (nécessaire pour la gestion MIDI)
-
-> ⚠️ **Important :** LoopMIDI doit être lancé **en même temps que l'application** pour que la communication MIDI fonctionne correctement.
+[![Source code](https://img.shields.io/badge/Source%20code-GitHub-blue)](https://github.com/tariteur/music-analyser)
 
 ---
 
-## Installation manuel (bidouilleur)
+## Windows Installation (classic)
 
-Installer les dépendances :  
+Before starting, make sure you have installed:
+
+- [LoopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) (required for MIDI management)
+
+> ⚠️ **Important:** LoopMIDI must be running **at the same time as the application** for MIDI communication to work properly.
+
+---
+
+## Manual Installation (tinkerer)
+
+Install dependencies:  
 `npm install`
 
-Lancer en développement/test :
+Run in development/test mode:
 `npm start`
 
-Compiler l'application en fichier exécutable (.exe) :
+Build the application into an executable file (.exe):
 `npm run build`
