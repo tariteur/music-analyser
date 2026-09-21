@@ -33,18 +33,17 @@ Si vous souhaitez compiler manuellement avec le code source :
 
 ---
 
-## Prérequis
+## Installation via Windows (classic)
 
 Avant de commencer, assurez-vous d'avoir installé :
 
-- [Node.js](https://nodejs.org/) (version 16 ou supérieure recommandée)
 - [LoopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) (nécessaire pour la gestion MIDI)
 
 > ⚠️ **Important :** LoopMIDI doit être lancé **en même temps que l'application** pour que la communication MIDI fonctionne correctement.
 
 ---
 
-## Installation
+## Installation manuel (bidouilleur)
 
 Installer les dépendances :  
 `npm install`
